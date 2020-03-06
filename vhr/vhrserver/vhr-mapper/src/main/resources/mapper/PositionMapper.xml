@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kxj.hrserver.dao.PositionMapper">
+    <insert id="addPos" parameterType="com.kxj.hrserver.bean.Position">
+      INSERT INTO position set name = #{pos.name}
+    </insert>
+
+    <select id="getPosByName" resultType="com.kxj.hrserver.bean.Position">
+      SELECT * FROM position WHERE name = #{name}
+    </select>
+
+    <select id="getAllPos" resultType="com.kxj.hrserver.bean.Position">
+      SELECT * FROM position ORDER BY id
+    </select>
+    
+    <delete id="deletePosById">
+      DELETE FROM position WHERE id IN
+        <foreach collection="pids" item="pid" separator="," open="(" close=")">
+            #{pid}
+        </foreach>
+    </delete>
+
+    <update id="updatePosById" parameterType="com.kxj.hrserver.bean.Position">
+        UPDATE position
+        <set>
+            <if test="pos.name!=null">
+                name = #{pos.name},
+            </if>
+            <if test="pos.name!=null">
+                enabled = #{pos.enabled},
+            </if>
+        </set>
+        WHERE id = #{pos.id}
+    </update>
+
+</mapper>

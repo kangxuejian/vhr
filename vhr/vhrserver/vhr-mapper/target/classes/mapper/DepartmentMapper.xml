@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kxj.hrserver.dao.DepartmentMapper">
+    <resultMap id="BaseResultMap" type="com.kxj.hrserver.bean.Department">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="parentId" property="parentId" jdbcType="VARCHAR"/>
+        <result column="depPath" property="depPath" jdbcType="VARCHAR"/>
+        <result column="enabled" property="enabled" jdbcType="BIT"/>
+        <result column="isParent" property="isParent" jdbcType="BIT"/>
+    </resultMap>
+    <resultMap id="DepartmentWithChildren" type="com.kxj.hrserver.bean.Department" extends="BaseResultMap">
+        <collection property="children" ofType="com.kxj.hrserver.bean.Department"
+                    select="com.kxj.hrserver.dao.DepartmentMapper.getAllDepartmentsByParentId" column="id">  <!--MyBatis递归-->
+        </collection>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id,name,parentId,enabled,isParent
+    </sql>
+
+    <!--根据parentId查询-->
+    <select id="getAllDepartmentsByParentId" resultMap="DepartmentWithChildren">
+        SELECT * FROM department where parentId=#{pid};
+    </select>
+
+    <!--添加部门,调用存储过程-->
+    <select id="addDep" statementType="CALLABLE">
+      call addDep(#{name,mode=IN,jdbcType=VARCHAR},#{parentId,mode=IN,jdbcType=INTEGER},#{enabled,mode=IN,jdbcType=BOOLEAN},#{result,mode=OUT,jdbcType=INTEGER},#{id,mode=OUT,jdbcType=INTEGER})
+    </select>
+
+    <!--删除部门,调用存储过程-->
+    <select id="deleteDepById" statementType="CALLABLE">
+       call deleteDep(#{id,mode=IN,jdbcType=INTEGER},#{result,mode=OUT,jdbcType=INTEGER})
+    </select>
+
+    <select id="getAllDepartmentsWithOutChildren" resultType="com.kxj.hrserver.bean.Department">
+        select
+          <include refid="Base_Column_List"/>
+        from department;
+    </select>
+
+</mapper>
