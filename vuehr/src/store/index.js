@@ -2,19 +2,13 @@ import Vue from "vue"
 import Vuex from "vuex"
 import { Notification} from 'element-ui'
 import {getRequest}  from "../utils/api"
-import '../utils/stomp'
-import '../utils/sockjs'
+import SockJS from 'sockjs-client'
+import Stomp from 'stompjs'
 
 Vue.use(Vuex)
 const now = new Date();
 const store = new Vuex.Store({
     state: {
-        user: {
-            name: window.sessionStorage.getItem('user' || '[]') == null ? '未登录' : JSON.parse(window.sessionStorage.getItem('user' || 
-            '[]')).name,
-            userface: window.sessionStorage.getItem('user' || '[]') == null ? '' : JSON.parse(window.sessionStorage.getItem('user' || 
-            '[]')).userface
-        },
         routes: [],
         sessions:{},
         hrs:[],
@@ -23,9 +17,6 @@ const store = new Vuex.Store({
         filterKey:'',
         stomp: null,
         isDot: {}
-    },
-    getters: {
-        
     },
     mutations: {
         INIT_CURRENTHR(state,hr){
@@ -45,7 +36,7 @@ const store = new Vuex.Store({
                 //显示聊天记录
                 Vue.set(state.sessions, state.currentHr.username + '#' + msg.to, []);
             }
-            state.sessions[state.currentHr.username+'#'+meg.to].push({
+            state.sessions[state.currentHr.username+'#'+msg.to].push({
                 content:msg.content,
                 date: new Date(),
                 self: !msg.notSelf
@@ -64,7 +55,6 @@ const store = new Vuex.Store({
     },
     actions:{
         connect(context) {
-            let _this = this;
             context.state.stomp = Stomp.over(new SockJS('/ws/ep'));
             context.state.stomp.connect({}, success => {
                 context.state.stomp.subscribe('/user/queue/chat', msg => {
